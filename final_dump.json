@@ -1,0 +1,40 @@
+[
+  {
+    "topic": "Learn MCP basic",
+    "date": null,
+    "content": "Minggu ke - 1\nFokus Utama\n...\nProgress Harian\nSenin:\nSelasa:\nRabu:\nkamis:\nJumat:\nSabtu:\nYang Belum Paham\n...\nIde & Catatan\n...",
+    "status": "On Hold"
+  },
+  {
+    "topic": "learn bussines",
+    "date": {
+      "start": "2026-01-01",
+      "end": null,
+      "time_zone": null
+    },
+    "content": "About asset\nProvide a brief overview describing the asset.\nMinggu ke - 1\nFokus Utama\n...\nProgress Harian\nSenin:\nSelasa:\nRabu:\nkamis:\nJumat:\nSabtu:\nYang Belum Paham\n...\nIde & Catatan\n...\nSupporting files",
+    "status": "Draft"
+  },
+  {
+    "topic": "Learn web3",
+    "date": null,
+    "content": "About asset\nProvide a brief overview describing the asset.\nSupporting files",
+    "status": "On Hold"
+  },
+  {
+    "topic": "ML",
+    "date": null,
+    "content": "Roadmap\nhttps://brandonrohrer.com/blog.html\nSupporting files",
+    "status": "Draft"
+  },
+  {
+    "topic": "Others",
+    "date": {
+      "start": "2026-01-01",
+      "end": "2026-01-05",
+      "time_zone": null
+    },
+    "content": "What i learn?\nLearn about how CPU works on architectural\nSupporting files",
+    "status": "Draft"
+  }
+]
