@@ -137,38 +137,41 @@ const Index = () => {
         </a>
       </div>
 
-      {Object.entries(groupedNotes).map(([monthYear, monthNotes]) => (
-        <div
-          key={monthYear}
-          className="lg:h-[80vh] lg:max-h-[80vh] overflow-y-auto"
-        >
-          <h2 className="text-xl font-semibold mb-4">{monthYear}</h2>
-          <div className="space-y-4">
-            {monthNotes.map((note, index) => (
-              <div key={index} className="pl-4 flex flex-col gap-2">
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-                    {note.date &&
-                      `${new Date(note.date.start)
-                        .getDate()
-                        .toString()
-                        .padStart(2, "0")}`}
-                  </div>
-                  <Link
-                    href={`/note/${encodeURIComponent(note.id)}`}
-                    className="hover:underline"
-                  >
-                    {note.topic}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground ml-2">
-                  {note.content.substring(0, 100)}...
-                </p>
-              </div>
-            ))}
+      <div className="flex flex-col gap-4">
+        {Object.entries(groupedNotes).map(([monthYear, monthNotes]) => (
+          <div
+            key={monthYear}
+            className="h-fit flex flex-col gap-2 overflow-y-auto px-4"
+          >
+            <h2 className="text-xl font-semibold">{monthYear}</h2>
+
+            <div className="space-y-4">
+              {monthNotes.map((note, index) => (
+                <div key={index} className="pl-4 flex flex-col gap-2">
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
+                      {note.date &&
+                        `${new Date(note.date.start)
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0")}`}
+                    </div>
+                    <Link
+                      href={`/note/${encodeURIComponent(note.id)}`}
+                      className="hover:underline"
+                    >
+                      {note.topic}
+                    </Link>
+                  </h3>
+                  <p className="text-muted-foreground ml-2">
+                    {note.content.substring(0, 100)}...
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {loading &&
         Array(3)
