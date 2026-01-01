@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { auth, googleProvider } from "@/app/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Card,

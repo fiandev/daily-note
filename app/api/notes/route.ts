@@ -1,13 +1,25 @@
 import { Client } from "@notionhq/client";
 import { NextRequest, NextResponse } from "next/server";
+import { isUserAllow } from "../login/route";
+import NodeCache from "node-cache";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+const myCache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
+const CACHE_KEY = "notion_notes_data";
+
+export async function GET(req: NextRequest) {
   const notionApiKey = process.env.NOTION_API_KEY;
-  if (!notionApiKey || typeof notionApiKey !== "string") {
+  if (!notionApiKey) {
     return NextResponse.json(
-      { message: "Notion API Key is not configured on the server." },
+      { message: "Notion API Key is not configured." },
       { status: 401 }
     );
+  }
+
+  const cachedData = myCache.get(CACHE_KEY);
+  if (cachedData) {
+    return NextResponse.json(cachedData, {
+      headers: { "X-Cache-Status": "HIT" },
+    });
   }
 
   const notion = new Client({ auth: notionApiKey });
@@ -21,7 +33,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
     const items = await Promise.all(
       source.results.map(async (page: any) => {
         const props = page.properties;
-
         const blocks = await notion.blocks.children.list({
           block_id: page.id,
         });
@@ -49,7 +60,26 @@ export async function GET(req: NextRequest, res: NextResponse) {
         };
       })
     );
-    return NextResponse.json(items);
+
+    // 2. Simpan hasil ke cache
+    // myCache.set(CACHE_KEY, items);
+
+    return NextResponse.json(
+      [
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+        ...items,
+      ],
+      {
+        headers: { "X-Cache-Status": "MISS" },
+      }
+    );
   } catch (error: any) {
     return NextResponse.json(
       { message: "Failed to fetch data from Notion", error: error.message },
@@ -58,18 +88,19 @@ export async function GET(req: NextRequest, res: NextResponse) {
   }
 }
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const body = await req.json();
+  const token = req.headers.get("Authorization")?.split(" ")[1] || "";
   const { topic, content, date, status } = body;
+
+  const user = await isUserAllow(token);
+  if (!user)
+    return NextResponse.json({ message: "User not allowed." }, { status: 401 });
 
   const notionApiKey = process.env.NOTION_API_KEY;
   const databaseId = process.env.NOTION_DATABASE_ID;
-
   if (!notionApiKey || !databaseId) {
-    return NextResponse.json(
-      { message: "Notion API or Database ID not configured." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Config missing." }, { status: 500 });
   }
 
   const notion = new Client({ auth: notionApiKey });
@@ -84,10 +115,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
         Status: { status: { name: status } },
       },
     });
+
+    // 3. Invalidate Cache (Hapus cache agar data baru muncul di GET)
+    myCache.del(CACHE_KEY);
+
     return NextResponse.json(newPage);
   } catch (error: any) {
     return NextResponse.json(
-      { message: "Failed to create note", error: error.message },
+      { message: "Failed", error: error.message },
       { status: 500 }
     );
   }
@@ -95,21 +130,18 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-  res: NextResponse
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const body = await req.json();
+  const token = req.headers.get("Authorization")?.split(" ")[1] || "";
   const { topic, content, date, status } = body;
+
+  const user = await isUserAllow(token);
+  if (!user)
+    return NextResponse.json({ message: "User not allowed." }, { status: 401 });
+
   const notionApiKey = process.env.NOTION_API_KEY;
-
-  if (!notionApiKey) {
-    return NextResponse.json(
-      { message: "Notion API not configured." },
-      { status: 500 }
-    );
-  }
-
   const notion = new Client({ auth: notionApiKey });
 
   try {
@@ -122,10 +154,14 @@ export async function PUT(
         Status: { status: { name: status } },
       },
     });
+
+    // Invalidate Cache
+    myCache.del(CACHE_KEY);
+
     return NextResponse.json(updatedPage);
   } catch (error: any) {
     return NextResponse.json(
-      { message: `Failed to update note ${id}`, error: error.message },
+      { message: "Failed", error: error.message },
       { status: 500 }
     );
   }
@@ -133,19 +169,16 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-  res: NextResponse
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const token = req.headers.get("Authorization")?.split(" ")[1] || "";
+
+  const user = await isUserAllow(token);
+  if (!user)
+    return NextResponse.json({ message: "User not allowed." }, { status: 401 });
+
   const notionApiKey = process.env.NOTION_API_KEY;
-
-  if (!notionApiKey) {
-    return NextResponse.json(
-      { message: "Notion API not configured." },
-      { status: 500 }
-    );
-  }
-
   const notion = new Client({ auth: notionApiKey });
 
   try {
@@ -153,10 +186,14 @@ export async function DELETE(
       page_id: id,
       archived: true,
     });
-    return NextResponse.json({ message: `Note ${id} deleted successfully.` });
+
+    // Invalidate Cache
+    myCache.del(CACHE_KEY);
+
+    return NextResponse.json({ message: "Deleted successfully." });
   } catch (error: any) {
     return NextResponse.json(
-      { message: `Failed to delete note ${id}`, error: error.message },
+      { message: "Failed", error: error.message },
       { status: 500 }
     );
   }

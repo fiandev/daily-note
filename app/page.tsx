@@ -8,6 +8,7 @@ import Link from "next/link";
 
 type Note = {
   topic: string;
+  id: string;
   date: {
     start: string;
     end: string | null;
@@ -125,8 +126,8 @@ const Index = () => {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-8">
+    <div className="container lg:max-w-3xl mx-auto py-10 flex flex-col gap-4">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Fian's Daily</h1>
         <a
           href="/login"
@@ -137,16 +138,26 @@ const Index = () => {
       </div>
 
       {Object.entries(groupedNotes).map(([monthYear, monthNotes]) => (
-        <div key={monthYear} className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">{monthYear}</h2>
+        <div
+          key={monthYear}
+          className="lg:h-[80vh] lg:max-h-[80vh] overflow-y-auto"
+        >
+          <h2 className="text-xl font-semibold mb-4">{monthYear}</h2>
           <div className="space-y-4">
             {monthNotes.map((note, index) => (
               <div key={index} className="pl-4 flex flex-col gap-2">
                 <h3 className="text-lg font-medium flex items-center gap-2">
                   <div className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-                    {note.date && `${new Date(note.date.start).getDate()}`}
+                    {note.date &&
+                      `${new Date(note.date.start)
+                        .getDate()
+                        .toString()
+                        .padStart(2, "0")}`}
                   </div>
-                  <Link href={`/note/${encodeURIComponent(note.topic)}`}>
+                  <Link
+                    href={`/note/${encodeURIComponent(note.id)}`}
+                    className="hover:underline"
+                  >
                     {note.topic}
                   </Link>
                 </h3>
@@ -160,11 +171,11 @@ const Index = () => {
       ))}
 
       {loading &&
-        Array(Math.floor(Math.random() * 3) + 1)
+        Array(3)
           .fill(1)
           .map((_, index) => (
-            <div key={index} className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4 animate-pulse text-muted-foreground bg-muted-foreground">
+            <div key={index}>
+              <h2 className="text-2xl font-semibold mb-4 animate-pulse w-fit text-muted-foreground bg-muted-foreground">
                 lorem ipsum
               </h2>
               <div className="space-y-4">
@@ -174,7 +185,7 @@ const Index = () => {
                       x
                     </div>
                   </h3>
-                  <p className="text-muted-foreground ml-2 bg-muted-foreground animate-pulse">
+                  <p className="text-muted-foreground ml-2 w-fit bg-muted-foreground animate-pulse">
                     Lorem ipsum dolor sit amet consectetur adipisicing elit.
                     Laborum tenetur illum hic aliquam, corrupti minima rem,
                     beatae et quos illo nesciunt eligendi culpa. Rem atque,
@@ -187,7 +198,7 @@ const Index = () => {
 
       {/* --- Pagination Controls --- */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-8">
+        <div className="flex justify-center items-center gap-4">
           <Button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}

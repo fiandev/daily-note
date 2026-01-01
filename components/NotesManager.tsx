@@ -1,4 +1,5 @@
-// daily-notes/src/components/NotesManager.tsx
+"use client";
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +32,12 @@ const NotesManager = () => {
   const fetchNotes = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/notes");
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/notes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch notes");
       }
@@ -49,7 +55,7 @@ const NotesManager = () => {
   };
 
   const handleDelete = async (noteId: string) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (!token) {
       setError("Authentication token not found.");
       return;
@@ -57,52 +63,50 @@ const NotesManager = () => {
 
     try {
       const response = await fetch(`/api/notes/${noteId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         throw new Error("Failed to delete the note.");
       }
-      
-      setNotes(notes.filter(n => n.id !== noteId));
 
+      setNotes(notes.filter((n) => n.id !== noteId));
     } catch (err: any) {
       setError(err.message);
     }
   };
-  
+
   const handleSave = async () => {
     if (!editingNote) return;
 
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (!token) {
       setError("Authentication token not found.");
       return;
     }
 
-    const method = editingNote.id ? 'PUT' : 'POST';
-    const url = editingNote.id ? `/api/notes/${editingNote.id}` : '/api/notes';
+    const method = editingNote.id ? "PUT" : "POST";
+    const url = editingNote.id ? `/api/notes/${editingNote.id}` : "/api/notes";
 
     try {
       const response = await fetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(editingNote)
+        body: JSON.stringify(editingNote),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save the note.');
+        throw new Error("Failed to save the note.");
       }
 
       fetchNotes(); // Refresh notes
       setEditingNote(null); // Close the form
-
     } catch (err: any) {
       setError(err.message);
     }
@@ -110,11 +114,15 @@ const NotesManager = () => {
 
   const handleCreate = () => {
     setEditingNote({
-      id: '',
-      topic: '',
-      date: { start: new Date().toISOString().split('T')[0], end: null, time_zone: null },
-      content: '',
-      status: 'Draft',
+      id: "",
+      topic: "",
+      date: {
+        start: new Date().toISOString().split("T")[0],
+        end: null,
+        time_zone: null,
+      },
+      content: "",
+      status: "Draft",
     });
   };
 
@@ -130,26 +138,33 @@ const NotesManager = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
-        {notes.map((note) => (
-          <Card key={note.id}>
-            <CardHeader>
-              <CardTitle>{note.topic}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>{note.content.substring(0, 100)}...</p>
-              <div className="flex gap-2 mt-4">
-                <Button onClick={() => handleEdit(note)}>Edit</Button>
-                <Button variant="destructive" onClick={() => handleDelete(note.id)}>Delete</Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          {notes.map((note) => (
+            <Card key={note.id}>
+              <CardHeader>
+                <CardTitle>{note.topic}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{note.content.substring(0, 100)}...</p>
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={() => handleEdit(note)}>Edit</Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDelete(note.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {editingNote && (
           <Card>
             <CardHeader>
-              <CardTitle>{editingNote.id ? 'Edit Note' : 'Create Note'}</CardTitle>
+              <CardTitle>
+                {editingNote.id ? "Edit Note" : "Create Note"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-2">
@@ -157,7 +172,9 @@ const NotesManager = () => {
                 <Input
                   id="topic"
                   value={editingNote.topic}
-                  onChange={(e) => setEditingNote({ ...editingNote, topic: e.target.value })}
+                  onChange={(e) =>
+                    setEditingNote({ ...editingNote, topic: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
@@ -165,12 +182,16 @@ const NotesManager = () => {
                 <Textarea
                   id="content"
                   value={editingNote.content}
-                  onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
+                  onChange={(e) =>
+                    setEditingNote({ ...editingNote, content: e.target.value })
+                  }
                 />
               </div>
               <div className="flex gap-2">
                 <Button onClick={handleSave}>Save</Button>
-                <Button variant="outline" onClick={() => setEditingNote(null)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setEditingNote(null)}>
+                  Cancel
+                </Button>
               </div>
             </CardContent>
           </Card>
