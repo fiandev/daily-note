@@ -36,19 +36,26 @@ if (
   }
 }
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const body = await req.json();
   const { token = "" } = body;
 
   if (!token) {
     return NextResponse.json(
       { message: "ID token is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     const user = await isUserAllow(token);
+
+    if (!user) {
+      return NextResponse.json(
+        { message: "user can't allowed" },
+        { status: 403 },
+      );
+    }
 
     return NextResponse.json(
       {
@@ -56,12 +63,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
         token: token,
         user: { email: user.email || "", uid: user.uid || "" },
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { message: "Invalid or expired token.", error: error.message },
-      { status: 401 }
+      { message: "Invalid or expired token.", error: error },
+      { status: 401 },
     );
   }
 }
